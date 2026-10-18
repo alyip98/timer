@@ -14,6 +14,7 @@
   <main class="app">
     <header>
       <h1>Float Timer</h1>
+      <div class="win-btns"><button id="win-min" title="Minimize">–</button><button id="win-close" title="Close">×</button></div>
       <div class="tabs" role="tablist">
         <button role="tab" data-mode="timer" aria-selected="true">Timer</button>
         <button role="tab" data-mode="stopwatch" aria-selected="false">Stopwatch</button>
@@ -47,6 +48,8 @@
     <p class="note" id="note"></p>
     <button class="install" id="install" hidden>Install app</button>
   </main>
+
+  <div id="mini-root" hidden></div>
 
   <template id="mini-tpl">
     <div class="mini">

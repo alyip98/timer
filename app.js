@@ -149,7 +149,28 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 });
 
 // ---- Always on top: Document Picture-in-Picture (Chromium 116+) ----
+function enterDesktopMini() {
+  const root = $('mini-root');
+  root.append($('mini-tpl').content.cloneNode(true));
+  document.body.classList.add('pip');
+  els.root.hidden = true; root.hidden = false;
+  pip = { win: window, time: root.querySelector('.mini-time'), start: root.querySelector('.mini-start') };
+  pip.start.onclick = toggle;
+  root.ondblclick = e => { if (e.target !== pip.start) exitDesktopMini(); };
+  window.desktop.setMini(true);
+  render();
+}
+function exitDesktopMini() {
+  const root = $('mini-root');
+  root.replaceChildren(); root.hidden = true; els.root.hidden = false;
+  document.body.classList.remove('pip');
+  pip = null;
+  window.desktop.setMini(false);
+  render();
+}
+
 async function openFloat() {
+  if (window.desktop) { pip ? exitDesktopMini() : enterDesktopMini(); return; }
   if (pip) { pip.win.close(); return; }
   if (!('documentPictureInPicture' in window)) { els.note.textContent = 'Always-on-top needs a Chromium browser (Chrome, Edge, Brave) on desktop.'; return; }
   try {
@@ -171,10 +192,11 @@ async function openFloat() {
   }
 }
 els.float.onclick = openFloat;
-if (!('documentPictureInPicture' in window)) els.note.textContent = 'Tip: open in Chrome or Edge on desktop to use Always on top.';
+if (window.desktop) { document.body.classList.add('electron'); els.note.textContent = 'Always on top shrinks to a small floating clock. Double-click it to restore.'; }
+else if (!('documentPictureInPicture' in window)) els.note.textContent = 'Tip: open in Chrome or Edge on desktop to use Always on top.';
 
 // Auto-minimize to the floating window when the user switches away while a timer runs
-if ('documentPictureInPicture' in window && 'mediaSession' in navigator) {
+if (!window.desktop && 'documentPictureInPicture' in window && 'mediaSession' in navigator) {
   try { navigator.mediaSession.setActionHandler('enterpictureinpicture', () => { if (!pip) openFloat(); }); } catch {}
 }
 
@@ -186,3 +208,8 @@ window.addEventListener('appinstalled', () => els.install.hidden = true);
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
 render();
+
+if (window.desktop) {
+  $('win-min').onclick = () => window.desktop.minimize();
+  $('win-close').onclick = () => window.desktop.close();
+}

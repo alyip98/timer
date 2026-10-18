@@ -1,0 +1,23 @@
+{
+  "name": "float-timer-desktop",
+  "version": "1.0.0",
+  "description": "Float Timer desktop app with a frameless always-on-top mini window",
+  "main": "main.js",
+  "scripts": {
+    "prepare-web": "node scripts/copy-web.js",
+    "start": "npm run prepare-web && electron .",
+    "dist": "npm run prepare-web && electron-builder"
+  },
+  "build": {
+    "appId": "io.github.alyip98.floattimer",
+    "productName": "Float Timer",
+    "files": ["main.js", "preload.js", "app/**/*"],
+    "mac": { "target": "dmg", "category": "public.app-category.productivity" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage", "category": "Utility" }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
