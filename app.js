@@ -45,7 +45,7 @@ function render() {
   els.root.classList.toggle('done', finished);
   document.title = state.running || finished ? `${text} · Float Timer` : 'Float Timer';
   if (pip) {
-    pip.time.textContent = text;
+    if (pip.win.document.activeElement !== pip.time) pip.time.value = text;
     pip.start.textContent = state.running ? '⏸' : '▶';
     pip.win.document.body.classList.toggle('done', finished);
   }
@@ -126,18 +126,21 @@ els.start.onclick = () => {
 };
 els.clear.onclick = clear;
 
-// Editable clock: Enter/blur applies, Escape cancels.
-els.time.onfocus = () => els.time.select();
-els.time.onkeydown = e => {
-  if (e.key === 'Enter') els.time.blur();
-  if (e.key === 'Escape') { els.time.value = fmt(current()); els.time.blur(); }
-};
-els.time.onblur = () => {
-  const ms = parseTime(els.time.value);
-  if (ms !== null) setTime(ms);
-  els.time.value = fmt(current());
-  render();
-};
+// Editable clock (main and floating): Enter/blur applies, Escape cancels.
+function bindClock(input) {
+  input.onfocus = () => input.select();
+  input.onkeydown = e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { input.value = fmt(current()); input.blur(); }
+  };
+  input.onblur = () => {
+    const ms = parseTime(input.value);
+    if (ms !== null) setTime(ms);
+    input.value = fmt(current());
+    render();
+  };
+}
+bindClock(els.time);
 
 document.querySelectorAll('.presets button').forEach(b => b.onclick = () => addTime(+b.dataset.min * 60000));
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
@@ -155,8 +158,9 @@ function enterDesktopMini() {
   document.body.classList.add('pip');
   els.root.hidden = true; root.hidden = false;
   pip = { win: window, time: root.querySelector('.mini-time'), start: root.querySelector('.mini-start') };
+  bindClock(pip.time);
   pip.start.onclick = toggle;
-  root.ondblclick = e => { if (e.target !== pip.start) exitDesktopMini(); };
+  root.ondblclick = e => { if (e.target === root.firstElementChild || e.target === root) exitDesktopMini(); };
   window.desktop.setMini(true);
   render();
 }
@@ -183,6 +187,7 @@ async function openFloat() {
     win.document.body.append($('mini-tpl').content.cloneNode(true));
     const q = s => win.document.querySelector(s);
     pip = { win, time: q('.mini-time'), start: q('.mini-start') };
+    bindClock(pip.time);
     q('.mini-start').onclick = toggle;
     win.addEventListener('pagehide', () => { pip = null; els.float.hidden = false; window.focus(); });
     els.note.textContent = 'Floating. Close the small window to come back.';
@@ -192,7 +197,7 @@ async function openFloat() {
   }
 }
 els.float.onclick = openFloat;
-if (window.desktop) { document.body.classList.add('electron'); els.note.textContent = 'Always on top shrinks to a small floating clock. Double-click it to restore.'; }
+if (window.desktop) { document.body.classList.add('electron'); els.note.textContent = 'Always on top shrinks to a small floating clock. Double-click beside the time to restore.'; }
 else if (!('documentPictureInPicture' in window)) els.note.textContent = 'Tip: open in Chrome or Edge on desktop to use Always on top.';
 
 // Auto-minimize to the floating window when the user switches away while a timer runs

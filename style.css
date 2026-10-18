@@ -71,7 +71,7 @@ input.time:focus { background: var(--panel); box-shadow: 0 0 0 2px var(--accent)
 /* Mini (picture-in-picture) window */
 body.pip { overflow: hidden; }
 .mini { height: 100vh; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 12px; }
-.mini .time { font-size: min(70vh, 14vw); }
+.mini .time { font-size: min(70vh, 14vw); width: auto; field-sizing: content; min-width: 5ch; }
 .mini-start { padding: 0; width: min(70vh, 14vw); height: min(70vh, 14vw); min-width: 32px; min-height: 32px; border-radius: 50%; font-size: 14px; line-height: 1; flex: none; }
 
 /* Desktop (Electron) frameless window */

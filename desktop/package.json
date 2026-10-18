@@ -11,13 +11,27 @@
   "build": {
     "appId": "io.github.alyip98.floattimer",
     "productName": "Float Timer",
-    "files": ["main.js", "preload.js", "app/**/*"],
-    "mac": { "target": "dmg", "category": "public.app-category.productivity" },
-    "win": { "target": "nsis" },
-    "linux": { "target": "AppImage", "category": "Utility" }
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
   },
   "devDependencies": {
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
-  }
+  },
+  "author": "alyip98",
+  "homepage": "https://github.com/alyip98/timer"
 }
