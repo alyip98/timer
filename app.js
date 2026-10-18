@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 const els = { time: $('time'), bar: $('bar'), start: $('start'), clear: $('clear'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
 
 const state = { mode: 'timer', running: false, total: 0, remaining: 0, elapsed: 0, endAt: 0, startAt: 0, tick: null };
-let pip = null; // { win, time, bar, start }
+let pip = null; // { win, time, start }
 
 const pad = n => String(n).padStart(2, '0');
 function fmt(ms) {
@@ -46,7 +46,6 @@ function render() {
   document.title = state.running || finished ? `${text} · Float Timer` : 'Float Timer';
   if (pip) {
     pip.time.textContent = text;
-    pip.bar.style.transform = `scaleX(${frac})`;
     pip.start.textContent = state.running ? '⏸' : '▶';
     pip.win.document.body.classList.toggle('done', finished);
   }
@@ -154,7 +153,7 @@ async function openFloat() {
   if (pip) { pip.win.close(); return; }
   if (!('documentPictureInPicture' in window)) { els.note.textContent = 'Always-on-top needs a Chromium browser (Chrome, Edge, Brave) on desktop.'; return; }
   try {
-    const win = await documentPictureInPicture.requestWindow({ width: 260, height: 130 });
+    const win = await documentPictureInPicture.requestWindow({ width: 240, height: 64 });
     for (const sheet of document.styleSheets) {
       const link = win.document.createElement('link');
       link.rel = 'stylesheet'; link.href = sheet.href; win.document.head.append(link);
@@ -162,12 +161,10 @@ async function openFloat() {
     win.document.body.classList.add('pip');
     win.document.body.append($('mini-tpl').content.cloneNode(true));
     const q = s => win.document.querySelector(s);
-    pip = { win, time: q('.mini-time'), bar: q('.mini-bar'), start: q('.mini-start') };
+    pip = { win, time: q('.mini-time'), start: q('.mini-start') };
     q('.mini-start').onclick = toggle;
-    q('.mini-reset').onclick = clear;
-    q('.mini-back').onclick = () => win.close();
     win.addEventListener('pagehide', () => { pip = null; els.float.hidden = false; window.focus(); });
-    els.note.textContent = 'Floating. Close the small window or press ⤢ to come back.';
+    els.note.textContent = 'Floating. Close the small window to come back.';
     render();
   } catch (e) {
     els.note.textContent = 'Could not open the floating window: ' + e.message;
