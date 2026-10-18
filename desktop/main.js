@@ -1,5 +1,13 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const fs = require('fs');
 const path = require('path');
+const hotkey = require('./hotkey');
+
+const DEFAULT_HOTKEY = 'Ctrl+Alt+Shift+T';
+const settingsPath = () => path.join(app.getPath('userData'), 'settings.json');
+const loadSettings = () => { try { return JSON.parse(fs.readFileSync(settingsPath(), 'utf8')); } catch { return {}; } };
+const saveSettings = s => { try { fs.writeFileSync(settingsPath(), JSON.stringify(s)); } catch {} };
+let shortcut;
 
 const FULL = { width: 420, height: 640 };
 const MINI = { width: 200, height: 56 };
@@ -38,5 +46,22 @@ ipcMain.on('set-mini', (_e, mini) => {
 ipcMain.on('window-minimize', () => win && win.minimize());
 ipcMain.on('window-close', () => win && win.close());
 
-app.whenReady().then(create);
+ipcMain.handle('get-hotkey', () => ({ accelerator: shortcut.current(), holdSupported: shortcut.holdSupported() }));
+ipcMain.handle('set-hotkey', (_e, accelerator) => {
+  const res = shortcut.set(accelerator);
+  if (res.ok) saveSettings({ ...loadSettings(), hotkey: accelerator });
+  return { ...res, holdSupported: shortcut.holdSupported() };
+});
+
+app.whenReady().then(() => {
+  create();
+  shortcut = hotkey.create({
+    isVisible: () => win.isVisible(),
+    show: () => { win.showInactive(); },
+    hide: () => { win.hide(); },
+  });
+  const saved = loadSettings().hotkey || DEFAULT_HOTKEY;
+  if (!shortcut.set(saved).ok) shortcut.set(DEFAULT_HOTKEY);
+});
+app.on('will-quit', () => shortcut && shortcut.dispose());
 app.on('window-all-closed', () => app.quit());

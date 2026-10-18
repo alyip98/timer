@@ -218,3 +218,39 @@ if (window.desktop) {
   $('win-min').onclick = () => window.desktop.minimize();
   $('win-close').onclick = () => window.desktop.close();
 }
+
+// ---- Desktop: configurable global show/hide shortcut ----
+if (window.desktop) {
+  const box = $('hotkey'), btn = $('hotkey-btn'), hint = $('hotkey-hint');
+  const mac = /Mac/.test(navigator.platform);
+  const label = a => a.split('+').map(k => (mac ? { Alt: 'Option', Ctrl: 'Control', Cmd: 'Command' } : {})[k] || k).join('+');
+  const setHint = (info, error) => {
+    hint.classList.toggle('error', !!error);
+    hint.textContent = error || (info.holdSupported ? 'Tap to toggle the floating clock, hold to peek.' : 'Tap to toggle the floating clock. Hold-to-peek needs ' + (mac ? 'Accessibility permission (System Settings > Privacy & Security).' : 'X11/Windows input access.'));
+  };
+  const show = info => { btn.textContent = label(info.accelerator); setHint(info); };
+  box.hidden = false;
+  window.desktop.getHotkey().then(show);
+
+  const KEYS = { ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right', Space: 'Space', Enter: 'Enter', Tab: 'Tab', Backspace: 'Backspace', Delete: 'Delete', Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown', Insert: 'Insert' };
+  const keyName = code => KEYS[code] || (/^Key[A-Z]$/.test(code) ? code.slice(3) : /^Digit\d$/.test(code) ? code.slice(5) : /^F\d{1,2}$/.test(code) ? code : null);
+
+  let recording = false, before = '';
+  const stop = () => { recording = false; btn.classList.remove('recording'); window.removeEventListener('keydown', onKey, true); };
+  async function onKey(e) {
+    e.preventDefault(); e.stopPropagation();
+    if (e.key === 'Escape') { btn.textContent = before; stop(); return; }
+    const name = keyName(e.code);
+    if (!name) return; // modifier alone, keep listening
+    if (!(e.ctrlKey || e.altKey || e.shiftKey || e.metaKey)) { hint.classList.add('error'); hint.textContent = 'Include at least one modifier (Ctrl, Alt, Shift or Cmd).'; return; }
+    const accel = [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift', e.metaKey && 'Cmd', name].filter(Boolean).join('+');
+    stop();
+    const res = await window.desktop.setHotkey(accel);
+    if (res.ok) show(res); else { btn.textContent = label(res.accelerator || accel); setHint(res, res.error); }
+  }
+  btn.onclick = () => {
+    if (recording) { btn.textContent = before; stop(); return; }
+    recording = true; before = btn.textContent; btn.textContent = 'Press shortcut…'; btn.classList.add('recording');
+    window.addEventListener('keydown', onKey, true);
+  };
+}

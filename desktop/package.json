@@ -14,6 +14,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "hotkey.js",
       "app/**/*"
     ],
     "mac": {
@@ -36,12 +37,16 @@
       "target": "AppImage",
       "category": "Utility"
     },
-    "afterPack": "scripts/adhoc-sign.js"
+    "afterPack": "scripts/adhoc-sign.js",
+    "npmRebuild": false
   },
   "devDependencies": {
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
   },
   "author": "alyip98",
-  "homepage": "https://github.com/alyip98/timer"
+  "homepage": "https://github.com/alyip98/timer",
+  "dependencies": {
+    "uiohook-napi": "^1.5.5"
+  }
 }

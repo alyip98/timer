@@ -24,3 +24,12 @@ xattr -cr "/Applications/Float Timer.app"
 ```
 
 then open it (right-click > Open the first time).
+
+### Global show/hide shortcut (desktop app)
+
+Default: **Control+Option+Shift+T** (Ctrl+Alt+Shift+T on Windows/Linux). Three modifiers keeps it clear of macOS system keys and common launchers/window managers (Spotlight, Raycast, Alfred, Rectangle, 1Password). Change it from the window: click the shortcut, then press a new combo.
+
+- **Tap**: show/hide the floating clock.
+- **Hold**: peek. Shows while held and hides on release.
+
+Hold detection uses `uiohook-napi`. On macOS grant Accessibility access when prompted; without it (or on Wayland) the shortcut still works as a tap toggle.

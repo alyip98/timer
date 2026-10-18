@@ -83,3 +83,10 @@ body.electron .tabs, body.electron button, body.electron input { -webkit-app-reg
 body.electron.pip .mini { -webkit-app-region: drag; }
 body.electron.pip .mini-start { -webkit-app-region: no-drag; }
 [hidden] { display: none !important; }
+
+.hotkey { display: flex; flex-direction: column; gap: 4px; align-items: center; color: var(--muted); font-size: 14px; }
+.hotkey-row { display: flex; align-items: center; gap: 10px; }
+.hotkey button { padding: 4px 10px; font-size: 14px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.hotkey button.recording { border-color: var(--accent); color: var(--accent); }
+.hotkey small { font-size: 12px; text-align: center; }
+.hotkey small.error { color: var(--done); }
