@@ -21,28 +21,23 @@
     </header>
 
     <section class="display">
-      <div class="time" id="time">05:00</div>
+      <input class="time" id="time" value="00:00" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Time (click to edit)">
       <div class="progress"><div class="bar" id="bar"></div></div>
     </section>
 
     <section class="setter" id="setter">
-      <div class="inputs">
-        <label><input id="h" type="number" min="0" max="99" value="0" inputmode="numeric"><span>h</span></label>
-        <label><input id="m" type="number" min="0" max="59" value="5" inputmode="numeric"><span>m</span></label>
-        <label><input id="s" type="number" min="0" max="59" value="0" inputmode="numeric"><span>s</span></label>
-      </div>
       <div class="presets">
-        <button data-min="1">1m</button>
-        <button data-min="5">5m</button>
-        <button data-min="10">10m</button>
-        <button data-min="25">25m</button>
-        <button data-min="60">1h</button>
+        <button data-min="1">+1m</button>
+        <button data-min="5">+5m</button>
+        <button data-min="10">+10m</button>
+        <button data-min="25">+25m</button>
+        <button data-min="60">+1h</button>
       </div>
     </section>
 
     <section class="controls">
       <button class="primary" id="start">Start</button>
-      <button id="reset">Reset</button>
+      <button id="clear">Clear</button>
     </section>
 
     <button class="float" id="float">
@@ -58,7 +53,7 @@
       <div class="time mini-time">05:00</div>
       <div class="mini-controls">
         <button class="mini-start" title="Start / pause">▶</button>
-        <button class="mini-reset" title="Reset">↺</button>
+        <button class="mini-reset" title="Clear">↺</button>
         <button class="mini-back" title="Back to full window">⤢</button>
       </div>
       <div class="progress"><div class="bar mini-bar"></div></div>

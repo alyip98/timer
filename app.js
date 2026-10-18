@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const els = { time: $('time'), bar: $('bar'), h: $('h'), m: $('m'), s: $('s'), start: $('start'), reset: $('reset'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
+const els = { time: $('time'), bar: $('bar'), start: $('start'), clear: $('clear'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
 
 const state = { mode: 'timer', running: false, total: 0, remaining: 0, elapsed: 0, endAt: 0, startAt: 0, tick: null };
 let pip = null; // { win, time, bar, start }
@@ -9,7 +9,23 @@ function fmt(ms) {
   const s = Math.ceil(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
   return (h ? pad(h) + ':' : '') + pad(m) + ':' + pad(s % 60);
 }
-const inputMs = () => ((+els.h.value || 0) * 3600 + (+els.m.value || 0) * 60 + (+els.s.value || 0)) * 1000;
+
+// "5:30", "1:02:03" or bare digits typed calculator-style ("130" -> 1:30). Returns ms or null.
+function parseTime(str) {
+  str = str.trim();
+  if (!str) return 0;
+  let parts;
+  if (str.includes(':')) {
+    parts = str.split(':').map(p => p.trim() === '' ? 0 : Number(p));
+  } else {
+    const d = str.replace(/\D/g, '').padStart(6, '0').slice(-6);
+    if (!/^\d+$/.test(str)) return null;
+    parts = [+d.slice(0, 2), +d.slice(2, 4), +d.slice(4)];
+  }
+  if (parts.length > 3 || parts.some(n => !Number.isFinite(n) || n < 0)) return null;
+  while (parts.length < 3) parts.unshift(0);
+  return ((parts[0] * 60 + parts[1]) * 60 + parts[2]) * 1000;
+}
 
 function current() {
   if (state.mode === 'stopwatch') return state.running ? state.elapsed + Date.now() - state.startAt : state.elapsed;
@@ -19,12 +35,12 @@ function current() {
 function render() {
   const ms = current();
   const text = fmt(state.mode === 'stopwatch' ? Math.floor(ms / 1000) * 1000 : ms);
-  const frac = state.mode === 'timer' && state.total ? ms / state.total : 1;
+  const frac = state.mode === 'timer' && state.total ? Math.min(1, ms / state.total) : 1;
   const finished = state.mode === 'timer' && state.total > 0 && ms === 0 && !state.running;
-  els.time.textContent = text;
+  if (document.activeElement !== els.time) els.time.value = text;
   els.bar.style.transform = `scaleX(${frac})`;
-  els.start.textContent = state.running ? 'Pause' : (state.mode === 'timer' && state.remaining > 0 && state.remaining < state.total) || (state.mode === 'stopwatch' && state.elapsed) ? 'Resume' : 'Start';
-  els.root.classList.toggle('running', state.running || (state.mode === 'timer' && state.remaining > 0 && state.remaining < state.total));
+  const paused = (state.mode === 'timer' && state.remaining > 0 && state.remaining < state.total) || (state.mode === 'stopwatch' && state.elapsed > 0);
+  els.start.textContent = state.running ? 'Pause' : paused ? 'Resume' : 'Start';
   els.root.classList.toggle('stopwatch', state.mode === 'stopwatch');
   els.root.classList.toggle('done', finished);
   document.title = state.running || finished ? `${text} · Float Timer` : 'Float Timer';
@@ -45,7 +61,6 @@ function loop() {
 function start() {
   if (state.running) return;
   if (state.mode === 'timer') {
-    if (state.remaining <= 0) { state.total = state.remaining = inputMs(); }
     if (state.remaining <= 0) return;
     state.endAt = Date.now() + state.remaining;
   } else state.startAt = Date.now();
@@ -63,12 +78,31 @@ function pause() {
   render();
 }
 
-function reset() {
+// Set the clock to an exact value without stopping it if it is running.
+function setTime(ms) {
+  if (state.mode === 'stopwatch') {
+    if (state.running) state.startAt = Date.now(), state.elapsed = ms; else state.elapsed = ms;
+  } else {
+    state.total = state.remaining = ms;
+    if (state.running) { if (ms > 0) state.endAt = Date.now() + ms; else pause(); }
+  }
+  render();
+}
+
+// Presets add to the clock, running or not.
+function addTime(ms) {
+  if (state.mode !== 'timer') return;
+  const left = current();
+  if (state.running) { state.endAt += ms; state.total += ms; }
+  else if (left === 0) { state.total = state.remaining = ms; }
+  else { state.remaining += ms; state.total += ms; }
+  render();
+}
+
+function clear() {
   pause();
   state.remaining = 0; state.elapsed = 0; state.total = 0;
-  if (state.mode === 'timer') { els.time.textContent = fmt(inputMs()); }
   render();
-  if (state.mode === 'timer') { els.time.textContent = fmt(inputMs()); if (pip) pip.time.textContent = fmt(inputMs()); }
 }
 
 function toggle() { state.running ? pause() : start(); }
@@ -91,18 +125,28 @@ els.start.onclick = () => {
   if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
   toggle();
 };
-els.reset.onclick = reset;
-[els.h, els.m, els.s].forEach(i => i.oninput = () => { if (!state.running && !state.remaining) { els.time.textContent = fmt(inputMs()); } });
-document.querySelectorAll('.presets button').forEach(b => b.onclick = () => {
-  const min = +b.dataset.min; els.h.value = Math.floor(min / 60); els.m.value = min % 60; els.s.value = 0;
-  reset();
-});
+els.clear.onclick = clear;
+
+// Editable clock: Enter/blur applies, Escape cancels.
+els.time.onfocus = () => els.time.select();
+els.time.onkeydown = e => {
+  if (e.key === 'Enter') els.time.blur();
+  if (e.key === 'Escape') { els.time.value = fmt(current()); els.time.blur(); }
+};
+els.time.onblur = () => {
+  const ms = parseTime(els.time.value);
+  if (ms !== null) setTime(ms);
+  els.time.value = fmt(current());
+  render();
+};
+
+document.querySelectorAll('.presets button').forEach(b => b.onclick = () => addTime(+b.dataset.min * 60000));
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   if (b.dataset.mode === state.mode) return;
-  pause(); reset();
+  clear();
   state.mode = b.dataset.mode;
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-  reset();
+  render();
 });
 
 // ---- Always on top: Document Picture-in-Picture (Chromium 116+) ----
@@ -120,7 +164,7 @@ async function openFloat() {
     const q = s => win.document.querySelector(s);
     pip = { win, time: q('.mini-time'), bar: q('.mini-bar'), start: q('.mini-start') };
     q('.mini-start').onclick = toggle;
-    q('.mini-reset').onclick = reset;
+    q('.mini-reset').onclick = clear;
     q('.mini-back').onclick = () => win.close();
     win.addEventListener('pagehide', () => { pip = null; els.float.hidden = false; window.focus(); });
     els.note.textContent = 'Floating. Close the small window or press ⤢ to come back.';
@@ -144,4 +188,4 @@ els.install.onclick = async () => { if (!deferred) return; deferred.prompt(); aw
 window.addEventListener('appinstalled', () => els.install.hidden = true);
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
-reset();
+render();
