@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const els = { time: $('time'), bar: $('bar'), start: $('start'), clear: $('clear'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
+const els = { sound: $('sound'), time: $('time'), bar: $('bar'), start: $('start'), clear: $('clear'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
 
 const state = { mode: 'timer', running: false, total: 0, remaining: 0, elapsed: 0, endAt: 0, startAt: 0, tick: null };
 let pip = null; // { win, time, start }
@@ -47,6 +47,7 @@ function render() {
   if (pip) {
     if (pip.win.document.activeElement !== pip.time) pip.time.value = text;
     pip.start.textContent = state.running ? '⏸' : '▶';
+    pip.fill.style.transform = `scaleX(${state.mode === 'timer' ? frac : 0})`;
     pip.win.document.body.classList.toggle('done', finished);
   }
   return ms;
@@ -106,9 +107,22 @@ function clear() {
 
 function toggle() { state.running ? pause() : start(); }
 
+let soundOn = true;
+try { soundOn = localStorage.getItem('soundOn') !== '0'; } catch {}
+function renderSound() {
+  els.sound.textContent = soundOn ? '🔔 Alarm sound: on' : '🔕 Alarm sound: off';
+  els.sound.setAttribute('aria-pressed', soundOn);
+}
+els.sound.onclick = () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem('soundOn', soundOn ? '1' : '0'); } catch {}
+  renderSound();
+};
+renderSound();
+
 function finish() {
   try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch {}
-  try {
+  if (soundOn) try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     [0, 0.25, 0.5].forEach(t => {
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -170,7 +184,7 @@ function enterDesktopMini() {
   root.append($('mini-tpl').content.cloneNode(true));
   document.body.classList.add('pip');
   els.root.hidden = true; root.hidden = false;
-  pip = { win: window, time: root.querySelector('.mini-time'), start: root.querySelector('.mini-start') };
+  pip = { win: window, fill: root.querySelector('.mini-fill'), time: root.querySelector('.mini-time'), start: root.querySelector('.mini-start') };
   bindClock(pip.time);
   pip.start.onclick = toggle;
   root.ondblclick = e => { if (e.target === root.firstElementChild || e.target === root) exitDesktopMini(); };
@@ -199,7 +213,7 @@ async function openFloat() {
     win.document.body.classList.add('pip');
     win.document.body.append($('mini-tpl').content.cloneNode(true));
     const q = s => win.document.querySelector(s);
-    pip = { win, time: q('.mini-time'), start: q('.mini-start') };
+    pip = { win, fill: q('.mini-fill'), time: q('.mini-time'), start: q('.mini-start') };
     bindClock(pip.time);
     bindKeys(win.document);
     q('.mini-start').onclick = toggle;

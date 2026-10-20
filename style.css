@@ -94,3 +94,10 @@ body.electron.pip .mini-start { -webkit-app-region: no-drag; }
 .keys { color: var(--muted); font-size: 12px; text-align: center; margin: -8px 0 0; opacity: 0.8; }
 .keys kbd { font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
 @media (hover: none) { .keys { display: none; } }
+
+.sound { align-self: center; font-size: 14px; padding: 6px 14px; }
+.sound[aria-pressed="false"] { color: var(--muted); }
+.mini { position: relative; overflow: hidden; }
+.mini > :not(.mini-fill) { position: relative; z-index: 1; }
+.mini-fill { position: absolute; inset: 0; background: var(--accent); opacity: 0.28; transform-origin: left; transition: transform 0.25s linear; z-index: 0; }
+.done .mini-fill { background: var(--done); }

@@ -41,6 +41,7 @@
       <button id="clear">Clear</button>
     </section>
 
+    <button class="sound" id="sound" aria-pressed="true" title="Toggle alarm sound">🔔 Alarm sound: on</button>
     <button class="float" id="float">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="12" width="8" height="6" rx="1" class="fill"/></svg>
       Always on top
@@ -58,6 +59,7 @@
 
   <template id="mini-tpl">
     <div class="mini">
+      <div class="mini-fill"></div>
       <input class="time mini-time" value="05:00" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Time (click to edit)">
       <button class="mini-start" title="Start / pause">▶</button>
     </div>
