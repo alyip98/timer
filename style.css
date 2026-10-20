@@ -90,3 +90,7 @@ body.electron.pip .mini-start { -webkit-app-region: no-drag; }
 .hotkey button.recording { border-color: var(--accent); color: var(--accent); }
 .hotkey small { font-size: 12px; text-align: center; }
 .hotkey small.error { color: var(--done); }
+
+.keys { color: var(--muted); font-size: 12px; text-align: center; margin: -8px 0 0; opacity: 0.8; }
+.keys kbd { font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+@media (hover: none) { .keys { display: none; } }

@@ -151,6 +151,19 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
   render();
 });
 
+// ---- Keyboard shortcuts: Space start/pause, R clear (ignored while typing in the clock) ----
+function bindKeys(doc) {
+  const typing = t => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+  doc.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
+    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) { if (e.target.blur) e.target.blur(); toggle(); } }
+    else if (e.code === 'KeyR' && !e.repeat) { e.preventDefault(); clear(); }
+  });
+  // stop a focused button from also "clicking" on Space release
+  doc.addEventListener('keyup', e => { if (e.code === 'Space' && !typing(e.target)) e.preventDefault(); });
+}
+bindKeys(document);
+
 // ---- Always on top: Document Picture-in-Picture (Chromium 116+) ----
 function enterDesktopMini() {
   const root = $('mini-root');
@@ -188,6 +201,7 @@ async function openFloat() {
     const q = s => win.document.querySelector(s);
     pip = { win, time: q('.mini-time'), start: q('.mini-start') };
     bindClock(pip.time);
+    bindKeys(win.document);
     q('.mini-start').onclick = toggle;
     win.addEventListener('pagehide', () => { pip = null; els.float.hidden = false; window.focus(); });
     els.note.textContent = 'Floating. Close the small window to come back.';
