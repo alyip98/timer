@@ -101,3 +101,6 @@ body.electron.pip .mini-start { -webkit-app-region: no-drag; }
 .mini > :not(.mini-fill) { position: relative; z-index: 1; }
 .mini-fill { position: absolute; inset: 0; background: var(--accent); opacity: 0.28; transform-origin: left; transition: transform 0.25s linear; z-index: 0; }
 .done .mini-fill { background: var(--done); }
+
+.version { align-self: center; color: var(--muted); font-size: 11px; opacity: 0.6; text-decoration: none; }
+.version:hover { opacity: 1; text-decoration: underline; }

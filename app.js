@@ -1,3 +1,6 @@
+// Bump together with the release tag (the desktop build takes its version from the tag).
+const VERSION = '1.2.0';
+
 const $ = id => document.getElementById(id);
 const els = { sound: $('sound'), time: $('time'), bar: $('bar'), start: $('start'), clear: $('clear'), float: $('float'), note: $('note'), install: $('install'), root: document.querySelector('.app') };
 
@@ -282,3 +285,5 @@ if (window.desktop) {
     window.addEventListener('keydown', onKey, true);
   };
 }
+
+$('version').textContent = 'v' + VERSION;
